@@ -1,5 +1,5 @@
 let myChart = null;
-const STORAGE_KEY = 'tmi_pro_stewardship_v1';
+const STORAGE_KEY = 'tmi_stewardship_v2';
 
 window.onload = () => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -49,34 +49,28 @@ function runAnalysis() {
     const mkt = parseFloat(document.getElementById('market-cycle').value) || 1;
     const seasonBonus = parseFloat(document.getElementById('season').value) || 0;
 
-    // Pricing & Costs
     const prices = { hardwood: 580 * mkt, pine: 410, pulp: 240, veneer: 1400 };
-    const costBase = 170;
-    const haulCost = dist > 50 ? (dist - 50) * 1.85 : 0;
-    const netCosts = costBase + haulCost - seasonBonus;
+    const costs = 170 + (dist > 50 ? (dist - 50) * 1.85 : 0) - seasonBonus;
 
     const vMbf = mbf * (maple + oak) * veneerRatio;
     const bMbf = mbf - vMbf;
 
     const wBase = (maple * prices.hardwood) + (oak * prices.hardwood) + (pine * prices.pine) + (aspen * prices.pulp);
-    const netToday = (bMbf * (wBase - netCosts)) + (vMbf * (prices.veneer - netCosts));
+    const netToday = (bMbf * (wBase - costs)) + (vMbf * (prices.veneer - costs));
     const netGrowth = netToday * (1 + growth);
 
     const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
-    // Update Screen
     document.getElementById('net-value-display').innerText = fmt.format(Math.max(0, netToday));
     document.getElementById('growth-premium').innerText = "+" + fmt.format(Math.max(0, netGrowth - netToday));
-    document.getElementById('valuation-subtext').innerText = `Valuation includes ${dist}mi transportation factoring.`;
 
-    // Strategy Advice
-    let adv = `Quality over timing. Your stands are currently providing a <b>${(growth*100).toFixed(1)}%</b> biological return. `;
-    if (mkt < 1) adv += "Because market demand is soft, the biological value added by holding often outweighs the immediate liquidation value.";
-    else adv += "Market conditions are favorable. Harvest decisions should be driven by forest maturity and silvicultural goals.";
+    let adv = `Good forestry beats perfect timing. Your stands are currently providing a <b>${(growth*100).toFixed(1)}%</b> biological return. `;
+    if (mkt < 1) adv += "Market demand is soft, but biological volume growth often offsets temporary price dips.";
+    else adv += "Market conditions are favorable. Harvest decisions should be driven by forest maturity.";
     document.getElementById('strategy-output').innerHTML = adv;
 
-    // Update Print Template
-    document.getElementById('report-date').innerText = `Assessment Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+    // Push to Report Template
+    document.getElementById('report-date').innerText = `Date: ${new Date().toLocaleDateString()}`;
     document.getElementById('print-value').innerText = fmt.format(Math.max(0, netToday));
     document.getElementById('print-growth').innerText = "+" + fmt.format(Math.max(0, netGrowth - netToday));
     document.getElementById('print-strategy').innerHTML = adv;
