@@ -1,5 +1,5 @@
 let myChart = null;
-const STORAGE_KEY = 'tmi_unified_data_v1';
+const STORAGE_KEY = 'tmi_pro_stewardship_v1';
 
 window.onload = () => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -19,10 +19,7 @@ function autoSave() {
     inputs.forEach(input => data[input.id] = input.value);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     updateVeneerLabel();
-    
-    const status = document.getElementById('save-status');
-    status.style.opacity = '1';
-    setTimeout(() => status.style.opacity = '0.5', 1000);
+    if(document.getElementById('analysis').style.display !== 'none') runAnalysis();
 }
 
 function updateVeneerLabel() {
@@ -36,12 +33,10 @@ function switchTab(button) {
     button.classList.add('active');
     document.querySelectorAll('.tab-content').forEach(s => s.style.display = 'none');
     document.getElementById(targetId).style.display = 'block';
-    
     if (targetId === 'analysis') runAnalysis();
 }
 
 function runAnalysis() {
-    // Inputs
     const mbf = parseFloat(document.getElementById('total-mbf').value) || 0;
     const maple = (parseFloat(document.getElementById('maple-pct').value) || 0) / 100;
     const oak = (parseFloat(document.getElementById('oak-pct').value) || 0) / 100;
@@ -54,43 +49,39 @@ function runAnalysis() {
     const mkt = parseFloat(document.getElementById('market-cycle').value) || 1;
     const seasonBonus = parseFloat(document.getElementById('season').value) || 0;
 
-    // Pricing Matrix (Delivered Mill Prices)
-    const prices = { hardwood: 580 * mkt, pine: 410, pulp: 240, veneer: 1350 };
-    const costs = 165 + (dist > 60 ? (dist - 60) * 1.75 : 0);
+    // Pricing & Costs
+    const prices = { hardwood: 580 * mkt, pine: 410, pulp: 240, veneer: 1400 };
+    const costBase = 170;
+    const haulCost = dist > 50 ? (dist - 50) * 1.85 : 0;
+    const netCosts = costBase + haulCost - seasonBonus;
 
-    const premiumMbf = mbf * (maple + oak) * veneerRatio;
-    const baseMbf = mbf - premiumMbf;
+    const vMbf = mbf * (maple + oak) * veneerRatio;
+    const bMbf = mbf - vMbf;
 
-    const weightedBase = (maple * prices.hardwood) + (oak * prices.hardwood) + (pine * prices.pine) + (aspen * prices.pulp);
-    
-    const netToday = (baseMbf * (weightedBase - costs + seasonBonus)) + (premiumMbf * (prices.veneer - costs + seasonBonus));
-    const netNextYear = netToday * (1 + growth);
+    const wBase = (maple * prices.hardwood) + (oak * prices.hardwood) + (pine * prices.pine) + (aspen * prices.pulp);
+    const netToday = (bMbf * (wBase - netCosts)) + (vMbf * (prices.veneer - netCosts));
+    const netGrowth = netToday * (1 + growth);
 
-    // Formatter
     const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
-    // UI Updates
+    // Update Screen
     document.getElementById('net-value-display').innerText = fmt.format(Math.max(0, netToday));
-    document.getElementById('growth-premium').innerText = "+" + fmt.format(Math.max(0, netNextYear - netToday));
-    document.getElementById('valuation-subtext').innerText = `Analysis based on ${mbf} MBF volume and ${dist}mi haul.`;
-    
-    // Advice & Strategy
-    let advice = `<strong>Stewardship Note:</strong> `;
-    if (mkt < 1) {
-        advice += `Markets are currently soft. Biological growth is providing a <b>${(growth*100).toFixed(1)}%</b> return. Holding is recommended.`;
-    } else {
-        advice += `Market cycles are favorable. Focus on quality grading and sustainable harvesting windows.`;
-    }
-    document.getElementById('strategy-output').innerHTML = advice;
+    document.getElementById('growth-premium').innerText = "+" + fmt.format(Math.max(0, netGrowth - netToday));
+    document.getElementById('valuation-subtext').innerText = `Valuation includes ${dist}mi transportation factoring.`;
 
-    // Report Bridge (Update Hidden Print Template)
-    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    document.getElementById('report-date').innerText = `Assessment Date: ${dateStr}`;
+    // Strategy Advice
+    let adv = `Quality over timing. Your stands are currently providing a <b>${(growth*100).toFixed(1)}%</b> biological return. `;
+    if (mkt < 1) adv += "Because market demand is soft, the biological value added by holding often outweighs the immediate liquidation value.";
+    else adv += "Market conditions are favorable. Harvest decisions should be driven by forest maturity and silvicultural goals.";
+    document.getElementById('strategy-output').innerHTML = adv;
+
+    // Update Print Template
+    document.getElementById('report-date').innerText = `Assessment Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
     document.getElementById('print-value').innerText = fmt.format(Math.max(0, netToday));
-    document.getElementById('print-growth').innerText = "+" + fmt.format(Math.max(0, netNextYear - netToday));
-    document.getElementById('print-strategy').innerHTML = advice;
+    document.getElementById('print-growth').innerText = "+" + fmt.format(Math.max(0, netGrowth - netToday));
+    document.getElementById('print-strategy').innerHTML = adv;
 
-    renderChart(netToday, netNextYear);
+    renderChart(netToday, netGrowth);
 }
 
 function renderChart(v1, v2) {
@@ -102,8 +93,8 @@ function renderChart(v1, v2) {
             labels: ['Value Today', '1-Year Projection'],
             datasets: [{
                 data: [Math.max(0, v1), Math.max(0, v2)],
-                backgroundColor: ['#1e392a', '#d4af37'],
-                borderRadius: 6
+                backgroundColor: ['#0d2818', '#d4af37'],
+                borderRadius: 4
             }]
         },
         options: {
