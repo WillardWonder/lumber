@@ -7,9 +7,9 @@
     --border: #e0e0e0;
 }
 
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1a1a1a; margin: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1a1a1a; margin: 0; line-height: 1.6; }
 
-/* UI Styles */
+/* Screen Styles */
 .header { background: var(--primary); color: white; padding: 1.2rem 5%; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
 .logo-box { background: var(--accent); color: var(--primary); padding: 8px 14px; border-radius: 4px; font-weight: 800; }
 .header h1 { font-family: 'Fraunces', serif; margin: 0; font-size: 1.4rem; }
@@ -37,21 +37,21 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1a1a1a; 
 .gold-hr { border: 0; border-top: 1px solid var(--accent); margin: 20px 0; opacity: 0.4; }
 .blog-link a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
-.btn-primary { background: var(--accent); color: var(--primary); border: none; padding: 1rem; border-radius: 4px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.2s; }
+.btn-primary { background: var(--accent); color: var(--primary); border: none; padding: 1rem; border-radius: 4px; font-weight: 800; cursor: pointer; width: 100%; font-size: 1rem; }
 
-/* HIDDEN FROM UI */
+/* VISIBILITY ENGINE: Fixes the Amateur Leakage */
 .print-only { display: none !important; }
 
-/* PRINT MEDIA QUERY */
 @media print {
     body { background: white; color: black; }
     .no-print { display: none !important; }
     .print-only { display: block !important; }
+    .report-wrapper { padding: 40px; border: 1px solid #ddd; }
     .report-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 30px; }
     .report-logo { background: var(--accent) !important; color: var(--primary) !important; padding: 10px; font-weight: 800; -webkit-print-color-adjust: exact; }
-    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
-    .report-stat { border: 1px solid #ddd; padding: 20px; border-radius: 4px; }
-    .report-stat h2 { margin: 10px 0 0; color: var(--primary); }
+    .report-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+    .report-metric { border: 1px solid #ddd; padding: 20px; border-radius: 4px; }
+    .report-metric h2 { margin: 10px 0 0; color: var(--primary); }
     .report-footer { margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px; font-size: 0.8rem; text-align: center; }
 }
 
