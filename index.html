@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timber Intel | Stewardship Platform</title>
+    <title>Timber Intel | Professional Stewardship Platform</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -15,7 +15,7 @@
         <div class="logo-box">TMI</div>
         <div>
             <h1>Timber Market Intelligence</h1>
-            <p class="subtitle">Evidence-Based Stewardship Framework</p>
+            <p class="subtitle">Stewardship Framework for Northern Wisconsin</p>
         </div>
     </div>
     <div id="save-status">● System Synced</div>
@@ -31,15 +31,15 @@
     <section id="inventory" class="tab-content">
         <div class="grid-2">
             <div class="card">
-                <h2>Species Composition</h2>
+                <h2>Species Composition (%)</h2>
                 <div class="input-grid">
-                    <div class="input-group"><label>Hard Maple %</label><input type="number" id="maple-pct" value="40" oninput="autoSave()"></div>
-                    <div class="input-group"><label>Red Oak %</label><input type="number" id="oak-pct" value="30" oninput="autoSave()"></div>
-                    <div class="input-group"><label>White Pine %</label><input type="number" id="pine-pct" value="20" oninput="autoSave()"></div>
-                    <div class="input-group"><label>Aspen %</label><input type="number" id="aspen-pct" value="10" oninput="autoSave()"></div>
+                    <div class="input-group"><label>Hard Maple</label><input type="number" id="maple-pct" value="40" oninput="autoSave()"></div>
+                    <div class="input-group"><label>Red Oak</label><input type="number" id="oak-pct" value="30" oninput="autoSave()"></div>
+                    <div class="input-group"><label>White Pine</label><input type="number" id="pine-pct" value="20" oninput="autoSave()"></div>
+                    <div class="input-group"><label>Aspen</label><input type="number" id="aspen-pct" value="10" oninput="autoSave()"></div>
                 </div>
                 <div class="input-group" style="margin-top: 25px;">
-                    <label>Total Volume (MBF)</label>
+                    <label>Estimated Total Volume (MBF)</label>
                     <input type="number" id="total-mbf" value="100" oninput="autoSave()">
                 </div>
             </div>
@@ -70,8 +70,8 @@
                     <label>Market Cycle Demand</label>
                     <select id="market-cycle" onchange="autoSave()">
                         <option value="1.15">High Demand</option>
-                        <option value="1.0" selected>Stable</option>
-                        <option value="0.80">Soft Demand</option>
+                        <option value="1.0" selected>Stable Cycle</option>
+                        <option value="0.80">Market Contraction</option>
                     </select>
                 </div>
             </div>
@@ -86,7 +86,7 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>MFL Status</label>
+                    <label>MFL Enrollment</label>
                     <select id="mfl-enrolled" onchange="autoSave()">
                         <option value="yes">Enrolled (Tax Optimized)</option>
                         <option value="no" selected>Not Enrolled</option>
@@ -111,14 +111,19 @@
             <div class="col">
                 <div class="card dark">
                     <h3>Strategic Intelligence</h3>
-                    <div id="strategy-output" class="strategy-box"></div>
+                    <div id="strategy-output"></div>
                     <hr class="gold-hr">
                     <p class="blog-link">Insights derived from <a href="https://www.kretzlumber.com/how-timber-markets-really-work/" target="_blank">"How Timber Markets Really Work"</a> by Troy Brown.</p>
                 </div>
                 <div class="card">
                     <button class="btn-primary" onclick="window.print()">
-                        <span>🖨️</span> Generate Report
+                        <span>🖨️</span> Print Stewardship Report
                     </button>
+                </div>
+                <div class="card">
+                    <h3>Biological Growth Premium</h3>
+                    <div id="growth-premium" style="font-size: 1.8rem; color: var(--primary); font-weight: 800;">$0</div>
+                    <p class="hint">Added value after 1 year of biological volume accrual.</p>
                 </div>
             </div>
         </div>
@@ -126,30 +131,32 @@
 </div>
 
 <div id="print-report" class="print-only">
-    <div class="report-header">
-        <div class="report-logo">TMI</div>
-        <div>
-            <h1>Timber Stewardship Assessment</h1>
-            <p id="report-date"></p>
+    <div class="report-wrapper">
+        <div class="report-header">
+            <div class="report-logo">TMI</div>
+            <div>
+                <h1>Timber Stewardship Assessment</h1>
+                <p id="report-date"></p>
+            </div>
         </div>
-    </div>
-    
-    <div class="report-grid">
-        <div class="report-stat">
-            <label>Estimated Liquid Value</label>
-            <h2 id="print-value"></h2>
+        
+        <div class="report-hero">
+            <div class="report-metric">
+                <label>Current Liquid Value</label>
+                <h2 id="print-value"></h2>
+            </div>
+            <div class="report-metric">
+                <label>1-Year Biological Growth</label>
+                <h2 id="print-growth"></h2>
+            </div>
         </div>
-        <div class="report-stat">
-            <label>1-Year Biological Growth</label>
-            <h2 id="print-growth"></h2>
-        </div>
-    </div>
 
-    <div class="report-content">
-        <h3>Strategic Analysis</h3>
-        <div id="print-strategy"></div>
-        <div class="report-methodology">
-            <p><strong>Note:</strong> This assessment utilizes the Kretz Lumber Stewardship Framework. For more details, visit: <em>kretzlumber.com/how-timber-markets-really-work/</em></p>
+        <div class="report-body">
+            <h3>Strategic Analysis</h3>
+            <div id="print-strategy"></div>
+            <div class="report-disclaimer">
+                <p><strong>Note:</strong> This assessment utilizes the Kretz Lumber Stewardship Framework. For detailed concepts, visit: <em>kretzlumber.com/how-timber-markets-really-work/</em></p>
+            </div>
         </div>
     </div>
 </div>
