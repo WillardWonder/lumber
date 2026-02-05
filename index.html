@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timber Intel | Wisconsin Market Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Modernized Variable Palette */
+        :root {
+            --primary: #1e4620;
+            --primary-light: #4c7e4e;
+            --accent: #e9c46a;
+            --surface: #ffffff;
+            --bg: #f4f7f5;
+            --text: #1a1c1a;
+            --border: #d1d9d1;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Base Styles */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+
+        /* Modern Tabs */
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tab {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Cards & Grid */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .metric-hero {
+            font-size: 3rem;
+            font-family: 'Fraunces', serif;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        /* Form Styling */
+        .input-group { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: #444; }
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn:hover { filter: brightness(1.2); }
+
+        canvas { max-height: 300px; }
+
+        @media (max-width: 768px) {
+            .grid-dashboard { grid-template-columns: 1fr; }
+            .nav-tabs { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: var(--accent); color: var(--primary); padding: 8px; border-radius: 8px; font-weight: 800;">TMI</div>
+        <h1 style="font-family: 'Fraunces'; margin: 0; font-size: 1.4rem;">Timber Market Intelligence</h1>
+    </div>
+    <div id="save-indicator" style="font-size: 0.8rem; opacity: 0.8;">Auto-saved to LocalStorage</div>
+</header>
+
+<div class="container">
+    <nav class="nav-tabs">
+        <div class="nav-tab active" onclick="switchTab('setup', this)">Step 1: Inventory</div>
+        <div class="nav-tab" onclick="switchTab('market', this)">Step 2: Market</div>
+        <div class="nav-tab" onclick="switchTab('analysis', this)">Step 3: Analysis</div>
+        <div class="nav-tab" onclick="switchTab('report', this)">Step 4: Report</div>
+    </nav>
+
+    <section id="setup" class="tab-content">
+        <div class="grid-dashboard">
+            <div class="card">
+                <h2 style="font-family: 'Fraunces';">Forest Composition</h2>
+                <p style="color: #666; font-size: 0.9rem;">Enter the percentage of each species in your harvest area.</p>
+                <div id="species-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="input-group">
+                        <label>Hard Maple %</label>
+                        <input type="number" class="sp-pct" data-sp="maple" value="40">
+                    </div>
+                    <div class="input-group">
+                        <label>Red Oak %</label>
+                        <input type="number" class="sp-pct" data-sp="oak" value="30">
+                    </div>
+                    <div class="input-group">
+                        <label>White Pine %</label>
+                        <input type="number" class="sp-pct" data-sp="pine" value="20">
+                    </div>
+                    <div class="input-group">
+                        <label>Aspen/Other %</label>
+                        <input type="number" class="sp-pct" data-sp="aspen" value="10">
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2 style="font-family: 'Fraunces';">Acreage</h2>
+                <div class="input-group">
+                    <label>Total Harvest Acres</label>
+                    <input type="number" id="total-acres" value="40">
+                </div>
+                <div class="input-group">
+                    <label>Avg MBF per Acre</label>
+                    <input type="number" id="avg-mbf" value="2.5" step="0.1">
+                </div>
+                <div id="total-pct-warn" style="color: var(--primary); font-weight: 700;"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="analysis" class="tab-content" style="display:none;">
+        <div class="grid-dashboard">
+            <div>
+                <div class="card">
+                    <h3 style="margin:0; font-size: 0.9rem; text-transform: uppercase; color: #666;">Estimated Net Stumpage Value</h3>
+                    <div class="metric-hero" id="net-value-display">$0,000</div>
+                    <p id="valuation-subtext" style="font-size: 0.9rem; color: #666;"></p>
+                </div>
+                <div class="card">
+                    <canvas id="speciesChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="background: var(--primary); color: white;">
+                    <h3 style="margin-top:0;">Harvesting Costs</h3>
+                    <label style="color: #ddd;">Logging & Hauling ($/MBF)</label>
+                    <input type="range" id="harvest-cost" min="100" max="250" value="150" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span>$100</span>
+                        <span id="cost-val" style="font-weight: 800; color: var(--accent);">$150</span>
+                        <span>$250</span>
+                    </div>
+                    <p style="font-size: 0.8rem; margin-top: 15px; opacity: 0.8;">Higher costs reflect difficult terrain or long haul distances.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="market" class="tab-content" style="display:none;">
+        <div class="card">
+            <h2>Current Mill Delivered Prices</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="input-group"><label>Hardwood Sawlogs ($/MBF)</label><input type="number" id="p-hardwood" value="550"></div>
+                <div class="input-group"><label>Pine Sawlogs ($/MBF)</label><input type="number" id="p-pine" value="350"></div>
+                <div class="input-group"><label>Aspen/Pulp ($/MBF)</label><input type="number" id="p-pulp" value="220"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    let myChart;
+
+    function switchTab(tabId, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).style.display = 'block';
+        el.classList.add('active');
+        if(tabId === 'analysis') updateCalculations();
+    }
+
+    function updateCalculations() {
+        // Data Gathering
+        const acres = parseFloat(document.getElementById('total-acres').value);
+        const avgMbf = parseFloat(document.getElementById('avg-mbf').value);
+        const harvestCost = parseFloat(document.getElementById('harvest-cost').value);
+        
+        const species = {
+            maple: { pct: document.querySelector('[data-sp="maple"]').value / 100, price: document.getElementById('p-hardwood').value },
+            oak: { pct: document.querySelector('[data-sp="oak"]').value / 100, price: document.getElementById('p-hardwood').value },
+            pine: { pct: document.querySelector('[data-sp="pine"]').value / 100, price: document.getElementById('p-pine').value },
+            aspen: { pct: document.querySelector('[data-sp="aspen"]').value / 100, price: document.getElementById('p-pulp').value }
+        };
+
+        let totalGross = 0;
+        let totalMbfCount = acres * avgMbf;
+        
+        const chartData = [];
+        const chartLabels = [];
+
+        for (let s in species) {
+            let spMbf = totalMbfCount * species[s].pct;
+            let spValue = spMbf * (species[s].price - harvestCost);
+            totalGross += spValue;
+            
+            chartData.push(Math.round(spValue));
+            chartLabels.push(s.toUpperCase());
+        }
+
+        document.getElementById('net-value-display').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalGross);
+        document.getElementById('cost-val').innerText = `$${harvestCost}`;
+        document.getElementById('valuation-subtext').innerText = `Based on ${totalMbfCount.toFixed(1)} total MBF across ${acres} acres.`;
+
+        renderChart(chartLabels, chartData);
+    }
+
+    function renderChart(labels, data) {
+        const ctx = document.getElementById('speciesChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#1e4620', '#4c7e4e', '#e9c46a', '#264653'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Value Distribution by Species' }
+                }
+            }
+        });
+    }
+
+    // Event Listeners for Live Updates
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+            if(document.getElementById('analysis').style.display !== 'none') {
+                updateCalculations();
+            }
+        });
+    });
+
+    // Initial load
+    window.onload = () => {
+        // You could add localStorage load logic here
+    };
+</script>
+
+</body>
+</html>
