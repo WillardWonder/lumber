@@ -5,80 +5,75 @@ function switchTab(tabId, el) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
     el.classList.add('active');
-    
-    // Auto-update calculations when switching to Analysis
     if (tabId === 'analysis') updateCalculations();
 }
 
 function updateCalculations() {
-    const acres = parseFloat(document.getElementById('total-acres').value) || 0;
-    const avgMbf = parseFloat(document.getElementById('avg-mbf').value) || 0;
-    const harvestCost = parseFloat(document.getElementById('harvest-cost').value) || 0;
-    
-    // Map species percentages to their specific mill prices
-    const speciesData = {
-        maple: { pct: document.querySelector('[data-sp="maple"]').value / 100, price: document.getElementById('p-hardwood').value },
-        oak: { pct: document.querySelector('[data-sp="oak"]').value / 100, price: document.getElementById('p-hardwood').value },
-        pine: { pct: document.querySelector('[data-sp="pine"]').value / 100, price: document.getElementById('p-pine').value },
-        aspen: { pct: document.querySelector('[data-sp="aspen"]').value / 100, price: document.getElementById('p-pulp').value }
+    // Inputs
+    const mbf = parseFloat(document.getElementById('total-mbf').value) || 0;
+    const growthRate = parseFloat(document.getElementById('bio-growth').value) / 100;
+    const distance = parseFloat(document.getElementById('mill-dist').value) || 0;
+    const demandMultiplier = parseFloat(document.getElementById('cabinet-demand').value);
+    const accessBonus = parseFloat(document.getElementById('access-type').value);
+
+    // Base Prices (Local averages)
+    const baseHardwood = 550 * demandMultiplier;
+    const basePine = 380;
+    const haulCost = distance * 2.5; // Estimated $2.50 per MBF per Mile
+
+    const species = {
+        maple: { pct: document.querySelector('[data-sp="maple"]').value / 100, price: baseHardwood },
+        oak: { pct: document.querySelector('[data-sp="oak"]').value / 100, price: baseHardwood },
+        pine: { pct: document.querySelector('[data-sp="pine"]').value / 100, price: basePine },
+        aspen: { pct: document.querySelector('[data-sp="aspen"]').value / 100, price: 240 }
     };
 
-    let totalNetValue = 0;
-    let totalMbfCount = acres * avgMbf;
-    let valuesArray = [];
-    let labelsArray = [];
-
-    for (let s in speciesData) {
-        let spMbf = totalMbfCount * speciesData[s].pct;
-        // Stumpage = Mill Price - Harvest/Haul Costs
-        let stumpagePerMbf = speciesData[s].price - harvestCost;
-        let spValue = spMbf * stumpagePerMbf;
-        
-        totalNetValue += spValue;
-        valuesArray.push(Math.round(spValue));
-        labelsArray.push(s.toUpperCase());
+    let todayValue = 0;
+    for (let s in species) {
+        let spMbf = mbf * species[s].pct;
+        let stumpage = species[s].price - haulCost + accessBonus - 150; // 150 base logging cost
+        todayValue += spMbf * stumpage;
     }
 
-    // UI Updates
-    document.getElementById('net-value-display').innerText = new Intl.NumberFormat('en-US', { 
-        style: 'currency', currency: 'USD', maximumFractionDigits: 0 
-    }).format(totalNetValue);
-    
-    document.getElementById('cost-val').innerText = `$${harvestCost}`;
-    document.getElementById('valuation-subtext').innerText = `Est. ${totalMbfCount.toFixed(1)} MBF total volume.`;
+    // Biological growth calculation (Value if you wait 1 year)
+    let nextYearValue = todayValue * (1 + growthRate);
 
-    renderChart(labelsArray, valuesArray);
+    // UI Updates
+    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    document.getElementById('net-value-display').innerText = formatter.format(todayValue);
+    document.getElementById('growth-value').innerText = formatter.format(nextYearValue);
+
+    // Logic-based advice based on Troy's principles
+    let advice = "";
+    if (demandMultiplier < 1) {
+        advice = "<strong>Market Timing:</strong> Demand is soft. Because your trees add volume biologically, holding may be better than selling in a down cycle.";
+    } else if (distance > 50) {
+        advice = "<strong>Local Constraint:</strong> Your distance to mills is high. Focus on high-quality veneer logs to offset transportation costs.";
+    } else {
+        advice = "<strong>Status:</strong> Your forest fundamentals are strong. Decisions should be based on forest health and maturity rather than price anxiety.";
+    }
+    document.getElementById('decision-advice').innerHTML = advice;
+
+    renderChart(todayValue, nextYearValue);
 }
 
-function renderChart(labels, data) {
-    const ctx = document.getElementById('speciesChart').getContext('2d');
+function renderChart(val1, val2) {
+    const ctx = document.getElementById('growthChart').getContext('2d');
     if (myChart) myChart.destroy();
-    
     myChart = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-            labels: labels,
+            labels: ['Current Value', 'Value in 1 Year (Bio-Growth)'],
             datasets: [{
-                data: data,
-                backgroundColor: ['#1e392a', '#2d5a41', '#d4af37', '#444'],
-                hoverOffset: 4
+                label: 'Value ($)',
+                data: [val1, val2],
+                backgroundColor: ['#1e392a', '#d4af37']
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
         }
     });
 }
-
-// Update Analysis live if inputs change
-document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('input', () => {
-        if(document.getElementById('analysis').style.display !== 'none') {
-            updateCalculations();
-        }
-    });
-});
