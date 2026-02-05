@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timber Intel | WI Market Platform</title>
+    <title>Timber Intel | Based on Troy Brown's Framework</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,63 +15,72 @@
         <div class="logo-box">TMI</div>
         <div>
             <h1>Timber Market Intelligence</h1>
-            <p class="subtitle">Wisconsin North-Central Region</p>
+            <p class="subtitle">Evidence-Based Forestry Decisions</p>
         </div>
     </div>
-    <div id="save-indicator">Data Localized</div>
 </header>
 
 <div class="container">
     <nav class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('setup', this)">1. Inventory</button>
-        <button class="nav-tab" onclick="switchTab('market', this)">2. Market</button>
-        <button class="nav-tab" onclick="switchTab('analysis', this)">3. Analysis</button>
+        <button class="nav-tab active" onclick="switchTab('inventory', this)">Forest Profile</button>
+        <button class="nav-tab" onclick="switchTab('local-factors', this)">Market & Access</button>
+        <button class="nav-tab" onclick="switchTab('analysis', this)">Decision Analysis</button>
     </nav>
 
-    <section id="setup" class="tab-content">
+    <section id="inventory" class="tab-content">
         <div class="grid-2">
             <div class="card">
-                <h2>Species Composition (%)</h2>
+                <h2>Species Mix & Diversity</h2>
+                <p class="hint">"Species mix drives value more than price levels."</p>
                 <div class="input-grid">
-                    <div class="input-group">
-                        <label>Hard Maple</label>
-                        <input type="number" class="sp-pct" data-sp="maple" value="40">
-                    </div>
-                    <div class="input-group">
-                        <label>Red Oak</label>
-                        <input type="number" class="sp-pct" data-sp="oak" value="30">
-                    </div>
-                    <div class="input-group">
-                        <label>White Pine</label>
-                        <input type="number" class="sp-pct" data-sp="pine" value="20">
-                    </div>
-                    <div class="input-group">
-                        <label>Aspen</label>
-                        <input type="number" class="sp-pct" data-sp="aspen" value="10">
-                    </div>
+                    <div class="input-group"><label>Hard Maple %</label><input type="number" class="sp-pct" data-sp="maple" value="40"></div>
+                    <div class="input-group"><label>Red Oak %</label><input type="number" class="sp-pct" data-sp="oak" value="30"></div>
+                    <div class="input-group"><label>White Pine %</label><input type="number" class="sp-pct" data-sp="pine" value="20"></div>
+                    <div class="input-group"><label>Aspen/Pulp %</label><input type="number" class="sp-pct" data-sp="aspen" value="10"></div>
                 </div>
             </div>
             <div class="card">
-                <h2>Volume Metrics</h2>
+                <h2>Growth & Quality</h2>
                 <div class="input-group">
-                    <label>Total Acres</label>
-                    <input type="number" id="total-acres" value="40">
+                    <label>Annual Biological Growth (%)</label>
+                    <input type="number" id="bio-growth" value="3.5" step="0.1">
+                    <p class="hint">Trees keep growing during down markets.</p>
                 </div>
                 <div class="input-group">
-                    <label>Estimated MBF / Acre</label>
-                    <input type="number" id="avg-mbf" value="2.5" step="0.1">
+                    <label>Current Volume (Total MBF)</label>
+                    <input type="number" id="total-mbf" value="100">
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="market" class="tab-content" style="display:none;">
-        <div class="card">
-            <h2>Delivered Mill Prices ($/MBF)</h2>
-            <div class="grid-3">
-                <div class="input-group"><label>Hardwood</label><input type="number" id="p-hardwood" value="550"></div>
-                <div class="input-group"><label>Softwood/Pine</label><input type="number" id="p-pine" value="380"></div>
-                <div class="input-group"><label>Pulp/Aspen</label><input type="number" id="p-pulp" value="240"></div>
+    <section id="local-factors" class="tab-content" style="display:none;">
+        <div class="grid-2">
+            <div class="card">
+                <h2>Local Market Drivers</h2>
+                <div class="input-group">
+                    <label>Cabinet/Flooring Demand</label>
+                    <select id="cabinet-demand">
+                        <option value="1.1">High (Premium Pricing)</option>
+                        <option value="1.0" selected>Stable</option>
+                        <option value="0.8">Soft (Wait for cycle)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Mill Distance (Miles)</label>
+                    <input type="number" id="mill-dist" value="25">
+                </div>
+            </div>
+            <div class="card">
+                <h2>Infrastructure & Access</h2>
+                <div class="input-group">
+                    <label>Seasonal Access Window</label>
+                    <select id="access-type">
+                        <option value="50">Frozen Ground/All-Season (+$50/MBF)</option>
+                        <option value="0" selected>Standard Summer/Fall</option>
+                        <option value="-40">Wet/Limited Access (-$40/MBF)</option>
+                    </select>
+                </div>
             </div>
         </div>
     </section>
@@ -80,24 +89,22 @@
         <div class="grid-main">
             <div class="col">
                 <div class="card highlight">
-                    <label>Est. Net Stumpage Value</label>
+                    <label>Net Liquid Value (Today)</label>
                     <div id="net-value-display" class="metric-hero">$0</div>
-                    <p id="valuation-subtext"></p>
                 </div>
                 <div class="card chart-container">
-                    <canvas id="speciesChart"></canvas>
+                    <canvas id="growthChart"></canvas>
                 </div>
             </div>
             <div class="col">
                 <div class="card dark">
-                    <h3>Harvesting Costs</h3>
-                    <p class="hint">Logging + Hauling</p>
-                    <input type="range" id="harvest-cost" min="100" max="300" value="160">
-                    <div class="range-labels">
-                        <span>$100</span>
-                        <span id="cost-val">$160</span>
-                        <span>$300</span>
-                    </div>
+                    <h3>The "Options" Strategy</h3>
+                    <p id="decision-advice" style="font-size: 0.95rem; line-height: 1.6;"></p>
+                </div>
+                <div class="card">
+                    <h3>Growth Value (1-Year Wait)</h3>
+                    <div id="growth-value" style="font-size: 1.5rem; font-weight: 700; color: var(--primary-light);">$0</div>
+                    <p class="hint">Estimated value added by biology alone, ignoring market price changes.</p>
                 </div>
             </div>
         </div>
