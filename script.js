@@ -1,7 +1,6 @@
 let myChart = null;
-const STORAGE_KEY = 'timber_intel_data';
+const STORAGE_KEY = 'timber_intel_persistence_v3';
 
-// 1. Initial Load & Persistence
 window.onload = () => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
@@ -31,7 +30,6 @@ function updateVeneerLabel() {
     document.getElementById('veneer-val').innerText = val;
 }
 
-// 2. Navigation
 function switchTab(button) {
     const targetId = button.getAttribute('data-target');
     document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
@@ -42,7 +40,6 @@ function switchTab(button) {
     if (targetId === 'analysis') runAnalysis();
 }
 
-// 3. Core Logic
 function runAnalysis() {
     const mbf = parseFloat(document.getElementById('total-mbf').value) || 0;
     const maple = (parseFloat(document.getElementById('maple-pct').value) || 0) / 100;
@@ -56,23 +53,25 @@ function runAnalysis() {
     const mkt = parseFloat(document.getElementById('market-cycle').value) || 1;
     const seasonBonus = parseFloat(document.getElementById('season').value) || 0;
 
-    // Pricing Matrix
+    // Kretz-Based Pricing Matrix
     const prices = { hardwood: 580 * mkt, pine: 410, pulp: 240, veneer: 1350 };
-    const costs = 165 + (dist > 60 ? (dist - 60) * 1.75 : 0);
+    const baseLoggingCost = 165;
+    const fuelSurcharge = dist > 60 ? (dist - 60) * 1.75 : 0;
+    const totalCosts = baseLoggingCost + fuelSurcharge;
 
-    // Veneer only applies to high-value Hardwood/Oak
+    // Apply Veneer Premium to Hardwoods
     const premiumMbf = mbf * (maple + oak) * veneerRatio;
     const baseMbf = mbf - premiumMbf;
 
     const weightedBase = (maple * prices.hardwood) + (oak * prices.hardwood) + (pine * prices.pine) + (aspen * prices.pulp);
     
-    const netToday = (baseMbf * (weightedBase - costs + seasonBonus)) + (premiumMbf * (prices.veneer - costs + seasonBonus));
+    const netToday = (baseMbf * (weightedBase - totalCosts + seasonBonus)) + (premiumMbf * (prices.veneer - totalCosts + seasonBonus));
     const netNextYear = netToday * (1 + growth);
 
-    // UI Render
     const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     document.getElementById('net-value-display').innerText = fmt.format(Math.max(0, netToday));
     document.getElementById('growth-premium').innerText = "+" + fmt.format(Math.max(0, netNextYear - netToday));
+    document.getElementById('valuation-subtext').innerText = `Analysis based on ${mbf} MBF volume and ${dist}mi haul.`;
     
     renderAdvice(mkt, dist, growth);
     renderChart(netToday, netNextYear);
@@ -81,11 +80,11 @@ function runAnalysis() {
 function renderAdvice(mkt, dist, growth) {
     let html = `<strong>Management Focus:</strong> `;
     if (mkt < 1) {
-        html += `Markets are currently down. However, your biology is "paying" you <b>${(growth*100).toFixed(1)}%</b> in volume annually. Troy Brown's strategy: Hold quality trees for the next cycle.`;
-    } else if (dist > 80) {
-        html += `Transportation is your biggest leak. Focus on high-grading (veneer) to make the haul distance profitable.`;
+        html += `Market is currently soft. Trees are biological assets adding <b>${(growth*100).toFixed(1)}%</b> volume annually. Troy Brown's advice: Wait for the next cycle.`;
+    } else if (dist > 100) {
+        html += `Distance is high. Ensure harvest includes enough veneer logs to absorb the transportation overhead.`;
     } else {
-        html += `Market conditions are favorable. If your forest is mature, this is a high-option window for a harvest.`;
+        html += `Strong demand. This is an optimal window for sustainable harvesting if trees have reached maturity.`;
     }
     document.getElementById('strategy-output').innerHTML = html;
 }
@@ -96,9 +95,9 @@ function renderChart(v1, v2) {
     myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Current Value', '1-Year Projection'],
+            labels: ['Value Today', '1-Year Projection'],
             datasets: [{
-                data: [v1, v2],
+                data: [Math.max(0, v1), Math.max(0, v2)],
                 backgroundColor: ['#1e392a', '#d4af37'],
                 borderRadius: 6
             }]
